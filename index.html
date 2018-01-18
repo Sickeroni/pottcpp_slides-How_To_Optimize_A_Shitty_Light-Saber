@@ -7,7 +7,7 @@
 		<title>reveal.js</title>
 
 		<link rel="stylesheet" href="css/reveal.css">
-		<link rel="stylesheet" href="css/theme/black.css">
+		<link rel="stylesheet" href="css/theme/blood.css">
 
 		<!-- Theme used for syntax highlighting of code -->
 		<link rel="stylesheet" href="lib/css/zenburn.css">
@@ -24,8 +24,260 @@
 	<body>
 		<div class="reveal">
 			<div class="slides">
-				<section>Slide 1</section>
-				<section>Slide 2</section>
+				<section>
+					<section>
+						<h3>How To</h3> <h3>OPTIMIZE</h3> <h3>A SHITTY Light-Saber</h3>
+					</section>
+					<section>
+						<h3>Der Plan</h3>
+						<ul>
+							<li> Bare-Metal-Programmierung mit C++</li>
+							<li> Ranges (Ansatzweise)</li>
+							<li> Lesbarkeit und Wartbarkeit erhöhen </li>
+							<li> Zeigen was technisch möglich ist </li>
+							<li> Kurz: ein kleinen Einblick zeigen</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Aufhänger?</h3>
+						<ul>
+							<li> ein lustiges Beispielprojekt</li>
+							<li> LED-Leiste übrig</li>
+							<li> Devboard verfügbar</li>
+							<li> Holzreste auch</li>
+						</ul>
+					</section>
+					<section>
+						<img src="emoji.png" width="40%">
+						<ul>
+							<li class="fragment fade-in"> billiges "shitty" Lichtschwert! ist doch klar!</li>
+						</ul>
+					</section>
+				</section>
+				<section>
+					<section>
+						<img src="batman.png">
+					</section>
+					<section>
+						<h3>How To</h3> <h3 style="color:red">FAIL</h3> <h3>A SHITTY Light-Saber</h3>
+					</section>
+
+				</section>
+				<section>
+					<section>
+						<h3>Die LEDs</h3>
+						<ul>
+						<li> 4x 30 LEDs vom Typ WS2812b</li>
+						<li> 800 kBit/s-Bus</li>
+						<li> 24bit-RGB-LED </li>
+					</ul>
+					</section>
+					<section>
+						<img src="datasheet1.png">
+					</section>
+					<section>
+						<img src="datasheet2.png">
+					</section>
+					<section>
+						<img src="datasheet3.png">
+					</section>
+					<section>
+						<img src="datasheet4.png">
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>SPI?</h3>
+						<img src="spi.png">
+					</section>
+					<section>
+						<h3>nope</h3>
+						<ul>
+							<li> Signal sieht anders aus..</li>
+							<li class="fragment fade-in"> WS2801 wäre SPI......</li>
+						</ul>
+						<img src="facepalm.jpg" class="fragment fade-in">
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>WS2812b ist aber beliebt!</h3>
+						<h3>Wie machen es die anderen?</h3>
+					</section>
+					<section>
+						<h3>ADAFRUIT NeoPixel (Arduino)</h3>
+					<pre><code class="hljs">void rainbowCycle(uint8_t wait) {
+  uint16_t i, j;
+    for(j=0; j<256 * 5; j++) { // 5 cycles of all colors on wheel
+      for(i=0; i< strip.numPixels(); i++) {
+        strip.setPixelColor(i, Wheel(((i * 256 / strip.numPixels()) + j) & 255));
+      }
+      strip.show();
+      delay(wait);
+	}}</code></pre>
+							<a href="https://github.com/adafruit/Adafruit_NeoPixel/blob/master/examples/RGBWstrandtest/RGBWstrandtest.ino">https://github.com/adafruit/Adafruit_NeoPixel</a>
+					</section>
+
+
+					<section>
+						<h3>ADAFRUIT NeoPixel (Arduino)</h3>
+					<pre><code class="hljs">        // Bit 7:
+        "out  %[port] , %[hi]"    "\n\t" // 1    PORT = hi
+        "mov  %[n2]   , %[lo]"    "\n\t" // 1    n2   = lo
+        "out  %[port] , %[n1]"    "\n\t" // 1    PORT = n1
+        "rjmp .+0"                "\n\t" // 2    nop nop
+        "sbrc %[byte] , 6"        "\n\t" // 1-2  if(b & 0x40)
+        "mov %[n2]   , %[hi]"    "\n\t" // 0-1   n2 = hi
+        "out  %[port] , %[lo]"    "\n\t" // 1    PORT = lo
+        "rjmp .+0"                "\n\t" // 2    nop nop
+        // Bit 6:
+        "out  %[port] , %[hi]"    "\n\t" // 1    PORT = hi
+        "mov  %[n1]   , %[lo]"    "\n\t" // 1    n1   = lo
+        "out  %[port] , %[n2]"    "\n\t" // 1    PORT = n2
+        "rjmp .+0"                "\n\t" // 2    nop nop
+        "sbrc %[byte] , 5"        "\n\t" // 1-2  if(b & 0x20)
+        "mov %[n1]   , %[hi]"    "\n\t" // 0-1   n1 = hi
+        "out  %[port] , %[lo]"    "\n\t" // 1    PORT = lo
+        "rjmp .+0"                "\n\t" // 2    nop nop</code></pre>
+							<a href="https://github.com/adafruit/Adafruit_NeoPixel/blob/master/examples/RGBWstrandtest/RGBWstrandtest.ino">https://github.com/adafruit/Adafruit_NeoPixel</a>
+					</section>
+				<section>
+					<h3>Zeitbedarf</h3>
+					<ul>
+					<li>Datenübertragung: 800kbits/s bzw 100 KBytes/s</li>
+					<li>4x30 Leds</li>
+					<li>24 Bit bzw 3 Byte Auflösung</li>
+					<li>60Hz Aktualisierung wäre nett</li>
+					<li>4x30x3x60 = 21.600 Bytes</li>
+					<li>21,6% CPU-Leistung nur fürs reine Senden!</li>
+				</ul>
+				</section>
+
+
+				</section>
+<section>
+					<section>
+						<h3>DMA</h3>
+						<img src="workdma.gif">
+					</section>
+					<section>
+						<h3>mcuoneclipse-ws2812b-k64f-dma</h3>
+					<img src="jackpot.gif">
+					</section>
+				<section>
+					<h3>mcuoneclipse-ws2812b-k64f-dma</h3>
+				<pre><code class="hljs">
+int main(void) {
+  uint8_t red, green, blue;
+
+  DMA_Init();
+  for (;;) {
+    DMA_Transfer(transmitBuf, sizeof(transmitBuf));
+  }
+  /* Never leave main */
+  return 0;
+}</code></pre>
+						<a href="https://mcuoneclipse.com/2015/08/05/tutorial-adafruit-ws2812b-neopixels-with-the-freescale-frdm-k64f-board-part-5-dma">source</a>
+				</section>
+
+				<section>
+					<h3>mcuoneclipse-ws2812b-k64f-dma</h3>
+				<pre><code class="hljs">static uint8_t transmitBuf[NEO_NOF_PIXEL*NEO_NOF_BITS_PIXEL] =
+    {
+        /* pixel 0: */
+        1, 1, 1, 1, 1, 1, 1, 1, /* green */
+        0, 0, 0, 0, 0, 0, 0, 0, /* red */
+        0, 0, 0, 0, 0, 0, 0, 0, /* blue */
+        /* pixel 1: */
+        0, 0, 0, 0, 0, 0, 0, 0, /* green */
+        1, 1, 1, 1, 1, 1, 1, 1, /* red */
+        0, 0, 0, 0, 0, 0, 0, 0,  /* blue */
+        /* pixel 0: */
+        0, 0, 0, 0, 0, 0, 0, 0, /* green */
+        0, 0, 0, 0, 0, 0, 0, 0, /* red */
+        1, 1, 1, 1, 1, 1, 1, 1  /* blue */
+    };
+</code></pre>
+						<a href="https://mcuoneclipse.com/2015/08/05/tutorial-adafruit-ws2812b-neopixels-with-the-freescale-frdm-k64f-board-part-5-dma">source</a>
+				</section>
+				<section>
+					<h3>Framebuffergröße</h3>
+					<ul>
+					<li>Optimal: 4x30x3 = 360 Bytes</li>
+					<li>Hier: 4x 30x3*x8 = 2.880 Bytes</li>
+				</ul>
+				</section>
+			</section>
+
+
+
+
+			<section>
+
+					<section>
+						<h3>Eine neue Implementierung</h3><h3>muss her</h3>
+						<img src="mimimi.gif">
+					</section>
+					<section>
+						<h3>Vorgaben</h3>
+						<ul>
+							<li>Keine CPU-Last</li>
+							<li>Daten kompakt speichern </li>
+						</ul>
+					</section>
+					<section>
+						<h3>Idee!</h3>
+						<img src="idee.png">
+					</section>
+					<section>
+						<h3>Idee!</h3>
+						<img src="idee2.png">
+					</section>
+					<section>
+						<h3>Anforderungen!</h3>
+						<ul>
+							<li>800.000 Bits/s Geschwindigkeit</li>
+							<li>3 Zustände pro Bit</li>
+							<li>2.400.000 Hz für Zustandswechsel</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Showdown</h3>
+						<img src="graph2.png" width="50%">
+					</section>
+					<section>
+						<h3>Showdown</h3>
+						<img src="graph3.png">
+					</section>
+				</section>
+				<section>
+					<section>
+						<h3>Was fehlt?</h3>
+						<ul>
+							<li>Abschaltung wenn alle Pixel übertragen wurden</li>
+							<li>richtiges testen (ist es auf dauer synchron?)</li>
+							<li>Code lesbarer machen</li>
+							<li>Clocks und Startup ohne KSDK</li>
+						</ul>
+					</section>
+					<section>
+						<h3>Lektionen?</h3>
+						<ul>
+							<li class="fragment fade-in">Irgendwie geht schnell, "richtig" nicht</li>
+							<li class="fragment fade-in">Triviale Sachen sind bei Bare Metal NIE trivial</li>
+							<li class="fragment fade-in">Nur weil etwas viel benutzt wird, ist es nicht zwangsläufig optimal (ws2801 vs ws2812b)</li>
+							<li class="fragment fade-in">Studiert Datenblätter gründlich bevor ihr ein produkt kauft.</li>
+						</ul>
+					</section>
+					<section>
+						<h3>ByeBye</h3>
+						<img src="bye.gif">
+					</section>
+
+
+
+
+				</section>
 			</div>
 		</div>
 
